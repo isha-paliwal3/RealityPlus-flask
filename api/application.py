@@ -2,6 +2,7 @@ import os
 from time import sleep
 from packaging import version
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import openai
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -21,6 +22,8 @@ else:
 
 # Start Flask app
 app = Flask(__name__)
+
+CORS(app)
 
 # Init client
 client = OpenAI(api_key=OPENAI_API_KEY)
