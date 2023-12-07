@@ -1,7 +1,7 @@
 import os
 from time import sleep
 from packaging import version
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 import openai
 from openai import OpenAI
@@ -69,40 +69,40 @@ def start_conversation():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-  data = request.json
-  thread_id = data.get('thread_id')
-  assistant_id = data.get('assistant_id')
-  user_input = data.get('message', '')
+    data = request.json
 
-  if not thread_id:
-    print("Error: Missing thread_id") 
-    return jsonify({"error": "Missing thread_id"}), 400
+    def generate(data):
+        thread_id = data.get('thread_id')
+        assistant_id = data.get('assistant_id')
+        user_input = data.get('message', '')
 
-  print(f"Received message: {user_input} for thread ID: {thread_id}")
+        if not thread_id:
+            yield f"data: Error: Missing thread_id\n\n"
+            return
 
+        print(f"Received message: {user_input} for thread ID: {thread_id}")
 
-  client.beta.threads.messages.create(thread_id=thread_id,
-                                      role="user",
-                                      content=user_input)
+        client.beta.threads.messages.create(thread_id=thread_id,
+                                            role="user",
+                                            content=user_input)
 
+        run = client.beta.threads.runs.create(thread_id=thread_id,
+                                              assistant_id=assistant_id)
 
-  run = client.beta.threads.runs.create(thread_id=thread_id,
-                                        assistant_id=assistant_id)
+        while True:
+            run_status = client.beta.threads.runs.retrieve(thread_id=thread_id,
+                                                          run_id=run.id)
+            print(f"Run status: {run_status.status}")
+            if run_status.status == 'completed':
+                messages = client.beta.threads.messages.list(thread_id=thread_id)
+                response = messages.data[0].content[0].text.value
+                yield f"{response}\n\n"
+                break
+            sleep(1)
 
-  while True:
-    run_status = client.beta.threads.runs.retrieve(thread_id=thread_id,
-                                                   run_id=run.id)
-    print(f"Run status: {run_status.status}")
-    if run_status.status == 'completed':
-      break
-    sleep(1)  
-
-  messages = client.beta.threads.messages.list(thread_id=thread_id)
-  response = messages.data[0].content[0].text.value
-
-  print(f"Assistant response: {response}")
-  return jsonify({"response": response})
+    return Response(generate(data), mimetype='text/event-stream')
 
 # Run server
 if __name__ == '__main__':
-  app.run(debug=True)
+  app.run(host='0.0.0.0', debug=True)
+
