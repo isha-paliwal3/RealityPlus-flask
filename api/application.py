@@ -23,8 +23,12 @@ else:
 # Start Flask app
 app = Flask(__name__)
 
-CORS(app)
+origins = [
+    "http://localhost:3000",
+    "https://reality-plus-web.vercel.app"
+]
 
+CORS(app, origins=origins)
 # Init client
 client = OpenAI(api_key=OPENAI_API_KEY)
 
