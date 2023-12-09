@@ -14,6 +14,30 @@ from datetime import datetime
 
 load_dotenv()
 
+# Check OpenAI version is correct
+required_version = version.parse("1.1.1")
+current_version = version.parse(openai.__version__)
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+ELEVENLABS_KEY = os.getenv('ELEVENLABS_KEY')
+voiceID=os.getenv('VOICE_ID')
+
+if current_version < required_version:
+  raise ValueError(f"Error: OpenAI version {openai.__version__}"
+                   " is less than the required version 1.1.1")
+else:
+  print("OpenAI version is compatible.")
+
+# Start Flask app
+app = Flask(__name__)
+
+origins = [
+    "http://localhost:3000",
+    "https://reality-plus-web.vercel.app"
+]
+
+CORS(app, origins=origins)
+client = OpenAI(api_key=OPENAI_API_KEY)
+
 def text_to_speech(textInput, voiceID, elevenLabsApiKey, fileName, stability=None, similarityBoost=None, modelId=None):
     try:
         voiceURL = f'https://api.elevenlabs.io/v1/text-to-speech/{voiceID}'
@@ -82,31 +106,6 @@ def audio_file_to_base64(file):
     with open(file, 'rb') as f:
         audio_data = f.read()
     return base64.b64encode(audio_data).decode('utf-8')
-
-# Check OpenAI version is correct
-required_version = version.parse("1.1.1")
-current_version = version.parse(openai.__version__)
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-ELEVENLABS_KEY = os.getenv('ELEVENLABS_KEY')
-voiceID=os.getenv('VOICE_ID')
-
-if current_version < required_version:
-  raise ValueError(f"Error: OpenAI version {openai.__version__}"
-                   " is less than the required version 1.1.1")
-else:
-  print("OpenAI version is compatible.")
-
-# Start Flask app
-app = Flask(__name__)
-
-origins = [
-    "http://localhost:3000",
-    "https://reality-plus-web.vercel.app"
-]
-
-CORS(app, origins=origins)
-# Init client
-client = OpenAI(api_key=OPENAI_API_KEY)
 
 def createAssistant(client, instructions):
     full_prompt = (instructions + 
