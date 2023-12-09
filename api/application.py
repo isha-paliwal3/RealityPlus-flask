@@ -86,9 +86,9 @@ def audio_file_to_base64(file):
 # Check OpenAI version is correct
 required_version = version.parse("1.1.1")
 current_version = version.parse(openai.__version__)
-OPENAI_API_KEY='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'
-elevenLabsApiKey='7d04402eaa87cb92d2070adedcccbfb8'
-voiceID='cjat3UAXxo0InDhcLEM4'
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+ELEVENLABS_KEY = os.getenv('ELEVENLABS_KEY')
+voiceID=os.getenv('VOICE_ID')
 
 if current_version < required_version:
   raise ValueError(f"Error: OpenAI version {openai.__version__}"
