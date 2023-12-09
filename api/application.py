@@ -145,7 +145,6 @@ def start_conversation():
   thread = client.beta.threads.create()
   return jsonify({"thread_id": thread.id})
 
-
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.json
@@ -180,7 +179,6 @@ def chat():
             sleep(1)
 
     return Response(generate(data), mimetype='text/event-stream')
-
 
 @app.route('/talk', methods=['POST'])
 def talk():
